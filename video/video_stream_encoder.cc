@@ -932,10 +932,11 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
       kMsToRtpTimestamp * static_cast<uint32_t>(incoming_frame.ntp_time_ms()));
   // Yichen
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/timestamp-all.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/translate-ts-us.txt",
       std::fstream::out | std::fstream::app);
-  file << incoming_frame.timestamp() << std::endl;
-  file.close(); // Yichen Eval: All Frame Timestamps */
+  file << incoming_frame.timestamp() << ","
+       << incoming_frame.timestamp_us() << std::endl;
+  file.close(); // Yichen Eval: Frame Timestamp Translation */
   if (incoming_frame.ntp_time_ms() <= last_captured_timestamp_) {
     // We don't allow the same capture time for two frames, drop this one.
     RTC_LOG(LS_WARNING) << "Same/old NTP timestamp ("
