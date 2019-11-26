@@ -181,6 +181,11 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
   _receiveCallback->FrameToRender(decodedImage, qp, frameInfo->content_type);
 }
 
+int32_t VCMDecodedFrameCallback::ReceivedDecodedReferenceFrame(
+    const uint64_t pictureId) {
+  return _receiveCallback->ReceivedDecodedReferenceFrame(pictureId);
+}
+
 int32_t VCMDecodedFrameCallback::ReceivedDecodedFrame(
     const uint64_t pictureId) {
   _lastReceivedPictureID = pictureId;
@@ -264,12 +269,12 @@ int32_t VCMGenericDecoder::Decode(const VCMEncodedFrame& frame, int64_t nowMs) {
   _callback->Map(frame.Timestamp(), &_frameInfos[_nextFrameInfoIdx]);
 
   _nextFrameInfoIdx = (_nextFrameInfoIdx + 1) % kDecoderFrameMemoryLength;
-  // Yichen
+  /* Yichen
   clock_t t_start, t_end;
   t_start = clock(); // Yichen Eval: Frame Decoding Time */
   int32_t ret = decoder_->Decode(frame.EncodedImage(), frame.MissingFrame(),
                                  frame.RenderTimeMs());
-  // Yichen
+  /* Yichen
   t_end = clock();
   std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/decode-ms.txt",
