@@ -645,7 +645,7 @@ bool RTPSenderVideo::SendVideo(VideoFrameType frame_type,
                                        expected_retransmission_time_ms);
   const size_t num_packets = packetizer->NumPackets();
 
-  // Yichen
+  /* Yichen
   std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/packet-num.txt",
       std::fstream::out | std::fstream::app);

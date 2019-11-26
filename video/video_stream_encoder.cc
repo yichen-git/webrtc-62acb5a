@@ -1208,7 +1208,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
   rtc::scoped_refptr<I420Buffer> ft360_buffer = I420Buffer::Create(
       target_width, target_height);
 
-  // Yichen
+  /* Yichen
   clock_t t_start, t_end;
   t_start = clock(); // Yichen Eval: Frame Transform Time */
   ft360::Transformer transformer(transform_buffer.get()->ToI420()->DataY(),
@@ -1257,7 +1257,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                        ypr.roll);
   v.Transform(EQUIRECT_BASEBALL_OFFSET);
   v.Get(ft360_buffer.get()->MutableDataV()); // Yichen: Single Channel */
-  // Yichen
+  /* Yichen
   t_end = clock();
   std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/transform-ms.txt",
@@ -1536,11 +1536,11 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
   frame_encoder_timer_.OnEncodeStarted(out_frame.timestamp(),
                                        out_frame.render_time_ms());
 
-  // Yichen
+  /* Yichen
   clock_t t_start, t_end;
   t_start = clock(); // Yichen Eval: Frame Encoding Time */
   const int32_t encode_status = encoder_->Encode(out_frame, &next_frame_types_);
-  // Yichen
+  /* Yichen
   t_end = clock();
   std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/encode-ms.txt",
