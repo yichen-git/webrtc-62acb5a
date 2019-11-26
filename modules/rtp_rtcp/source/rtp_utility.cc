@@ -416,6 +416,20 @@ void RtpHeaderParser::ParseOneByteExtensionHeader(
               ConvertCVOByteToVideoRotation(ptr[0]);
           break;
         }
+        // Yichen
+        case kRtpExtensionContentRotation: {
+          if (len != 3) {
+            RTC_LOG(LS_WARNING)
+                << "Incorrect coordination of content coordination len: " << len;
+            return;
+          }
+          header->extension.hasContentRotation = true;
+          header->extension.contentRotation.yaw = ptr[0];
+          header->extension.contentRotation.pitch = ptr[1];
+          header->extension.contentRotation.roll = ptr[2];
+          header->extension.contentRotation.extra = ptr[3];
+          break;
+        } // Yichen */
         case kRtpExtensionTransportSequenceNumber: {
           if (len != 1) {
             RTC_LOG(LS_WARNING)

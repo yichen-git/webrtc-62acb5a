@@ -17,6 +17,7 @@
 #include "modules/video_coding/packet.h"
 #include "modules/video_coding/packet_buffer.h"
 #include "rtc_base/checks.h"
+// #include "rtc_base/logging.h" // Yichen
 #include "rtc_base/critical_section.h"
 
 namespace webrtc {
@@ -72,7 +73,13 @@ RtpFrameObject::RtpFrameObject(PacketBuffer* packet_buffer,
   // onto the last RTP packet in each group of packets which make up a key
   // frame (I-frame or IDR frame in H.264 (AVC), or an IRAP picture in H.265
   // (HEVC)).
+  /* Yichen
+  RTC_LOG(LS_INFO) << "-------------------- ypr: "
+                   << (int)last_packet->video_header.ypr.yaw << ","
+                   << (int)last_packet->video_header.ypr.pitch << ","
+                   << (int)last_packet->video_header.ypr.roll; // Yichen */
   rotation_ = last_packet->video_header.rotation;
+  adaptation_ = last_packet->video_header.ypr; // Yichen
   SetColorSpace(last_packet->video_header.color_space);
   _rotation_set = true;
   content_type_ = last_packet->video_header.content_type;

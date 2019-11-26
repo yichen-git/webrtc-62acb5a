@@ -129,6 +129,19 @@ class VideoOrientation {
   static bool Write(rtc::ArrayView<uint8_t> data, uint8_t value);
 };
 
+// Yichen
+class ContentOrientation {
+ public:
+  using value_type = ContentRotation;
+  static constexpr RTPExtensionType kId = kRtpExtensionContentRotation;
+  static constexpr uint8_t kValueSizeBytes = 4;
+  static constexpr const char kUri[] = "bingsyslab:content-orientation";
+
+  static bool Parse(rtc::ArrayView<const uint8_t> data, ContentRotation* value);
+  static size_t ValueSize(ContentRotation) { return kValueSizeBytes; }
+  static bool Write(rtc::ArrayView<uint8_t> data, ContentRotation value);
+}; // Yichen */
+
 class PlayoutDelayLimits {
  public:
   using value_type = PlayoutDelay;

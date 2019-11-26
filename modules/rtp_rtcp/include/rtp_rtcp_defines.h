@@ -57,6 +57,7 @@ enum RTPExtensionType : int {
   kRtpExtensionAudioLevel,
   kRtpExtensionAbsoluteSendTime,
   kRtpExtensionVideoRotation,
+  kRtpExtensionContentRotation, // Yichen
   kRtpExtensionTransportSequenceNumber,
   kRtpExtensionTransportSequenceNumber02,
   kRtpExtensionPlayoutDelay,

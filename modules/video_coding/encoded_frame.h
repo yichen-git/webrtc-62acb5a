@@ -72,6 +72,10 @@ class VCMEncodedFrame : protected EncodedImage {
    */
   VideoRotation rotation() const { return rotation_; }
   /**
+   *   Get content rotation
+   */
+  ContentRotation adaptation() const { return adaptation_; } // Yichen
+  /**
    *  Get video content type
    */
   VideoContentType contentType() const { return content_type_; }

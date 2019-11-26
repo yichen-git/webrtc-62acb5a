@@ -14,6 +14,11 @@ import("../../webrtc.gni")
 # use the internal capturer.
 rtc_static_library("video_capture_module") {
   visibility = [ "*" ]
+  cflags = [
+    "-I/usr/local/include", # Yichen
+    "-I/usr/local/cuda-9.0/include", # Yichen
+  ]
+
   sources = [
     "device_info_impl.cc",
     "device_info_impl.h",

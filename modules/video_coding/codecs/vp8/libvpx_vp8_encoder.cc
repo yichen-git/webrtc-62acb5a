@@ -1071,6 +1071,7 @@ int LibvpxVp8Encoder::GetEncodedPartitions(const VideoFrame& input_image) {
     encoded_images_[encoder_idx].capture_time_ms_ =
         input_image.render_time_ms();
     encoded_images_[encoder_idx].rotation_ = input_image.rotation();
+    encoded_images_[encoder_idx].adaptation_ = input_image.adaptation(); // Yichen
     encoded_images_[encoder_idx].content_type_ =
         (codec_.mode == VideoCodecMode::kScreensharing)
             ? VideoContentType::SCREENSHARE

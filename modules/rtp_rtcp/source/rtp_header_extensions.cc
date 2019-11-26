@@ -266,6 +266,32 @@ bool VideoOrientation::Write(rtc::ArrayView<uint8_t> data, uint8_t value) {
   return true;
 }
 
+// Yichen
+constexpr RTPExtensionType ContentOrientation::kId;
+constexpr uint8_t ContentOrientation::kValueSizeBytes;
+constexpr const char ContentOrientation::kUri[];
+
+bool ContentOrientation::Parse(rtc::ArrayView<const uint8_t> data,
+                               ContentRotation* rotation) {
+  if (data.size() != 4)
+    return false;
+  rotation->yaw = data[0];
+  rotation->pitch = data[1];
+  rotation->roll = data[2];
+  rotation->extra = data[3];
+  return true;
+}
+
+bool ContentOrientation::Write(rtc::ArrayView<uint8_t> data,
+                               ContentRotation rotation) {
+  RTC_DCHECK_EQ(data.size(), 4);
+  data[0] = rotation.yaw;
+  data[1] = rotation.pitch;
+  data[2] = rotation.roll;
+  data[3] = rotation.extra;
+  return true;
+} // Yichen */
+
 //   0                   1                   2                   3
 //   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 //  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+

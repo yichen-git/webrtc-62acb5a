@@ -14,6 +14,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <fstream> // Yichen Eval
 
 #include "absl/memory/memory.h"
 #include "api/transport/field_trial_based_config.h"
@@ -295,6 +296,14 @@ RtpVideoSender::RtpVideoSender(
     }
   }
 
+  // Yichen
+  std::string uri = "bingsyslab:content-orientation";
+  const std::string& extension = uri;
+  int id = 10; // Yichen Log: register ID at sender
+  for (const RtpStreamSender& stream : rtp_streams_)
+    RTC_CHECK(stream.rtp_rtcp->RegisterRtpHeaderExtension(extension, id));
+  // Yichen */
+
   ConfigureProtection(rtp_config);
   ConfigureSsrcs(rtp_config);
   ConfigureRids(rtp_config);
@@ -411,6 +420,12 @@ EncodedImageCallback::Result RtpVideoSender::OnEncodedImage(
       encoded_image.Timestamp() +
       rtp_streams_[stream_index].rtp_rtcp->StartTimestamp();
 
+  // Yichen
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/translate-ts.txt",
+      std::fstream::out | std::fstream::app);
+  file << rtp_timestamp << "," << encoded_image.Timestamp() << std::endl;
+  file.close(); // Yichen Eval: Frame Timestamp Translation */
   // RTCPSender has it's own copy of the timestamp offset, added in
   // RTCPSender::BuildSR, hence we must not add the in the offset for this call.
   // TODO(nisse): Delete RTCPSender:timestamp_offset_, and see if we can confine
@@ -445,6 +460,12 @@ EncodedImageCallback::Result RtpVideoSender::OnEncodedImage(
   if (!send_result)
     return Result(Result::ERROR_SEND_FAILED);
 
+  /* Yichen
+  // std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/encode-qp.txt",
+      std::fstream::out | std::fstream::app);
+  file << encoded_image.qp_ << std::endl;
+  file.close(); // Yichen Eval: Frame Encoding Params */
   return Result(Result::OK, rtp_timestamp);
 }
 

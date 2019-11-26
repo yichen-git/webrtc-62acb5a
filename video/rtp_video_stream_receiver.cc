@@ -545,6 +545,7 @@ void RtpVideoStreamReceiver::ReceivePacket(const RtpPacketReceived& packet) {
   }
 
   packet.GetExtension<VideoOrientation>(&video_header.rotation);
+  packet.GetExtension<ContentOrientation>(&video_header.ypr); // Yichen
   packet.GetExtension<VideoContentTypeExtension>(&video_header.content_type);
   packet.GetExtension<VideoTimingExtension>(&video_header.video_timing);
   packet.GetExtension<PlayoutDelayLimits>(&video_header.playout_delay);

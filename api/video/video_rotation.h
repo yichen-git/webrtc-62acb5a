@@ -21,6 +21,14 @@ enum VideoRotation {
   kVideoRotation_270 = 270
 };
 
+// Yichen
+struct ContentRotation {
+  int8_t yaw = 0;
+  int8_t pitch = 0;
+  int8_t roll = 0;
+  int8_t extra = 0;
+}; // Yichen */
+
 }  // namespace webrtc
 
 #endif  // API_VIDEO_VIDEO_ROTATION_H_

@@ -95,7 +95,9 @@ config("library_impl_config") {
 config("common_inherited_config") {
   defines = []
   cflags = []
-  ldflags = []
+  ldflags = [
+    "-lft360", # Yichen
+  ]
 
   if (rtc_enable_symbol_export) {
     defines = [ "WEBRTC_ENABLE_SYMBOL_EXPORT" ]

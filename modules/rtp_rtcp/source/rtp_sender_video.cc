@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <fstream> // Yichen Eval
 
 #include "absl/memory/memory.h"
 #include "absl/strings/match.h"
@@ -71,6 +72,10 @@ void AddRtpHeaderExtensions(const RTPVideoHeader& video_header,
 
   if (last_packet && set_video_rotation)
     packet->SetExtension<VideoOrientation>(video_header.rotation);
+
+  if (last_packet)
+    if (!packet->SetExtension<ContentOrientation>(video_header.ypr))
+      RTC_LOG(LS_INFO) << "---------- SetExtension Failed ----------"; // Yichen */
 
   // Report content type only for key frames.
   if (last_packet && frame_type == VideoFrameType::kVideoFrameKey &&
@@ -539,6 +544,13 @@ bool RTPSenderVideo::SendVideo(VideoFrameType frame_type,
   RTC_DCHECK_GT(packet_capacity, first_packet->headers_size());
   RTC_DCHECK_GT(packet_capacity, middle_packet->headers_size());
   RTC_DCHECK_GT(packet_capacity, last_packet->headers_size());
+  /* Yichen
+  RTC_LOG(LS_INFO) << "---------- " << single_packet->headers_size() << " ----------";
+  RTC_LOG(LS_INFO) << "---------- " << first_packet->headers_size() << " ----------";
+  RTC_LOG(LS_INFO) << "---------- " << middle_packet->headers_size() << " ----------";
+  RTC_LOG(LS_INFO) << "---------- " << last_packet->headers_size() << " ----------";
+  RTC_LOG(LS_INFO) << "---------- -- ----------";
+  // Yichen */
   RtpPacketizer::PayloadSizeLimits limits;
   limits.max_payload_len = packet_capacity - middle_packet->headers_size();
 
@@ -632,6 +644,13 @@ bool RTPSenderVideo::SendVideo(VideoFrameType frame_type,
   StorageType storage = GetStorageType(temporal_id, retransmission_settings,
                                        expected_retransmission_time_ms);
   const size_t num_packets = packetizer->NumPackets();
+
+  // Yichen
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/packet-num.txt",
+      std::fstream::out | std::fstream::app);
+  file << num_packets << std::endl;
+  file.close(); // Yichen Eval: Packets Per Frame */
 
   size_t unpacketized_payload_size;
   if (fragmentation && fragmentation->fragmentationVectorSize > 0) {

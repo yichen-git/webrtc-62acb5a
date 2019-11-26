@@ -14,6 +14,13 @@
 #include <limits>
 #include <numeric>
 #include <utility>
+// Yichen
+#include <fcntl.h> // O_RDWR
+#include <semaphore.h>
+#include <sys/mman.h> // shm_open()
+// Yichen */
+#include <ft360/transformer.h> // Yichen
+#include <fstream> // Yichen Eval
 
 #include "absl/algorithm/container.h"
 #include "absl/memory/memory.h"
@@ -923,7 +930,12 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
   const int kMsToRtpTimestamp = 90;
   incoming_frame.set_timestamp(
       kMsToRtpTimestamp * static_cast<uint32_t>(incoming_frame.ntp_time_ms()));
-
+  // Yichen
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/timestamp-all.txt",
+      std::fstream::out | std::fstream::app);
+  file << incoming_frame.timestamp() << std::endl;
+  file.close(); // Yichen Eval: All Frame Timestamps */
   if (incoming_frame.ntp_time_ms() <= last_captured_timestamp_) {
     // We don't allow the same capture time for two frames, drop this one.
     RTC_LOG(LS_WARNING) << "Same/old NTP timestamp ("
@@ -951,8 +963,18 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
   encoder_queue_.PostTask(
       [this, incoming_frame, post_time_us, log_stats]() {
         RTC_DCHECK_RUN_ON(&encoder_queue_);
-        encoder_stats_observer_->OnIncomingFrame(incoming_frame.width(),
-                                                 incoming_frame.height());
+        /* encoder_stats_observer_->OnIncomingFrame(incoming_frame.width(),
+                                                 incoming_frame.height()); // Yichen */
+        // Yichen
+        int target_width = (incoming_frame.width() * 3) >> 2,
+            target_height = (incoming_frame.height() * 3) >> 2;
+        ft360::Consult(incoming_frame.width(),
+                       incoming_frame.height(),
+                       target_width,
+                       target_height,
+                       0, 0, 0);
+        encoder_stats_observer_->OnIncomingFrame(target_width, target_height);
+        // Yichen: Change encoder parameters */
         ++captured_frame_count_;
         const int posted_frames_waiting_for_encode =
             posted_frames_waiting_for_encode_.fetch_sub(1);
@@ -1105,19 +1127,167 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                                                int64_t time_when_posted_us) {
   RTC_DCHECK_RUN_ON(&encoder_queue_);
 
-  if (!last_frame_info_ || video_frame.width() != last_frame_info_->width ||
-      video_frame.height() != last_frame_info_->height ||
-      video_frame.is_texture() != last_frame_info_->is_texture) {
+  /* RTC_LOG(LS_INFO) << "Before Transform: ts-"
+                   << video_frame.timestamp_us() / CLOCKS_PER_SEC << ", res-"
+                   << video_frame.width() << "x"
+                   << video_frame.height(); // Yichen Eval: Frame Drop Rate */
+  ContentRotation ypr; // Yichen
+  // Yichen
+  int flag;
+  sem_t* rr_out = sem_open("rr_out", O_RDWR);
+  if (rr_out != SEM_FAILED) {
+    if (sem_getvalue(rr_out, &flag) == 0) {
+      if (flag > 0) {
+        // RTC_LOG(LS_INFO) << "rr_out: " << flag; // Yichen Debug
+        int l = 128;
+        char* data = (char*)malloc(l);
+        int shmfd = shm_open("/(null)_out", O_RDWR, 0);
+        if (shmfd > 0) {
+          void* shmaddr = mmap(NULL, l, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0);
+          // fprintf(stderr, "shmaddr: %p\n", shmaddr); // Yichen Debug
+          if (shmaddr != MAP_FAILED) {
+            sem_t* mutex_out = sem_open("mutex_out", O_RDWR);
+            if (mutex_out != SEM_FAILED) {
+              sem_wait(mutex_out);
+              memcpy(data, shmaddr, l);
+              sem_post(mutex_out);
+              // RTC_LOG(LS_INFO) << "DATA: " << data; // Yichen Debug
+              // TEXT TO VALUE
+              char delim[] = ",:\"tsypr";
+              char* ptr = strtok(data, delim);
+              if (ptr != NULL) {
+                ptr = strtok(NULL, delim);
+                int raw = atoi(ptr);
+                if (abs(raw) <= 90) ypr.yaw = raw;
+                else {
+                  if (raw > 90) {
+                    ypr.yaw = 90;
+                    ypr.extra = raw - ypr.yaw;
+                  } else {
+                    ypr.yaw = -90;
+                    ypr.extra = raw - ypr.yaw;
+                  }
+                }
+                ptr = strtok(NULL, delim);
+                ypr.pitch = atoi(ptr);
+                ptr = strtok(NULL, delim);
+                ypr.roll = atoi(ptr);
+                // TEXT TO VALUE
+              } else sem_wait(rr_out);
+              sem_close(mutex_out);
+            } else RTC_LOG(LS_INFO) << "sem_open() mutex_out failed";
+            munmap(shmaddr, l);
+          } else RTC_LOG(LS_INFO) << "mmap() shmfd failed";
+          close(shmfd);
+        } else RTC_LOG(LS_INFO) << "shm_open() \"/(null)_out\" failed";
+        free(data);
+      }
+    } else RTC_LOG(LS_INFO) << "sem_getvalue() rr_out failed";
+    sem_close(rr_out);
+  } else RTC_LOG(LS_INFO) << "sem_open() rr_out failed";
+  // Yichen */
+
+  VideoFrame out_frame(video_frame); // Yichen
+
+  // Yichen
+  rtc::scoped_refptr<I420BufferInterface> transform_buffer(
+      video_frame.video_frame_buffer()->ToI420());
+
+  if (!transform_buffer) {
+    RTC_LOG(LS_ERROR) << "Frame conversion failed, dropping frame.";
+    return;
+  }
+
+  int target_width = (video_frame.width() * 3) >> 2,
+      target_height = (video_frame.height() * 3) >> 2;
+
+  VideoFrame::UpdateRect update_rect =
+      VideoFrame::UpdateRect{0, 0, target_width, target_height};
+
+  rtc::scoped_refptr<I420Buffer> ft360_buffer = I420Buffer::Create(
+      target_width, target_height);
+
+  // Yichen
+  clock_t t_start, t_end;
+  t_start = clock(); // Yichen Eval: Frame Transform Time */
+  ft360::Transformer transformer(transform_buffer.get()->ToI420()->DataY(),
+                                 transform_buffer.get()->ToI420()->DataU(),
+                                 transform_buffer.get()->ToI420()->DataV(),
+                                 video_frame.width(),
+                                 video_frame.height(),
+                                 target_width,
+                                 target_height,
+                                 ypr.yaw + ypr.extra,
+                                 ypr.pitch,
+                                 ypr.roll);
+  if (transformer.Transform(EQUIRECT_BASEBALL_32_OFF) == 0) {
+    transformer.Get(ft360_buffer.get()->MutableDataY(),
+                    ft360_buffer.get()->MutableDataU(),
+                    ft360_buffer.get()->MutableDataV());
+  } else RTC_LOG(LS_ERROR) << "Transformer::Transform() failed";
+  /* Yichen: Single Channel
+  ft360::Transformer y(transform_buffer.get()->ToI420()->DataY(),
+                       video_frame.width(),
+                       video_frame.height(),
+                       target_width,
+                       target_height,
+                       ypr.yaw + ypr.extra,
+                       ypr.pitch,
+                       ypr.roll);
+  y.Transform(EQUIRECT_BASEBALL_OFFSET);
+  y.Get(ft360_buffer.get()->MutableDataY());
+  ft360::Transformer u(transform_buffer.get()->ToI420()->DataU(),
+                       video_frame.width() >> 1,
+                       video_frame.height() >> 1,
+                       target_width >> 1,
+                       target_height >> 1,
+                       ypr.yaw + ypr.extra,
+                       ypr.pitch,
+                       ypr.roll);
+  u.Transform(EQUIRECT_BASEBALL_OFFSET);
+  u.Get(ft360_buffer.get()->MutableDataU());
+  ft360::Transformer v(transform_buffer.get()->ToI420()->DataV(),
+                       video_frame.width() >> 1,
+                       video_frame.height() >> 1,
+                       target_width >> 1,
+                       target_height >> 1,
+                       ypr.yaw + ypr.extra,
+                       ypr.pitch,
+                       ypr.roll);
+  v.Transform(EQUIRECT_BASEBALL_OFFSET);
+  v.Get(ft360_buffer.get()->MutableDataV()); // Yichen: Single Channel */
+  // Yichen
+  t_end = clock();
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/transform-ms.txt",
+      std::fstream::out | std::fstream::app);
+  file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
+  file.close(); // Yichen Eval: Frame Transform Time */
+
+  out_frame = VideoFrame::Builder()
+                  .set_video_frame_buffer(ft360_buffer)
+                  .set_timestamp_rtp(video_frame.timestamp())
+                  .set_timestamp_ms(video_frame.render_time_ms())
+                  .set_rotation(video_frame.rotation())
+                  .set_id(video_frame.id())
+                  .set_update_rect(update_rect)
+                  .build();
+  out_frame.set_adaptation(ypr); // TODO: Set in constructor
+  // Yichen */
+
+  if (!last_frame_info_ || out_frame.width() != last_frame_info_->width ||
+      out_frame.height() != last_frame_info_->height ||
+      out_frame.is_texture() != last_frame_info_->is_texture) {
     pending_encoder_reconfiguration_ = true;
-    last_frame_info_ = VideoFrameInfo(video_frame.width(), video_frame.height(),
-                                      video_frame.is_texture());
+    last_frame_info_ = VideoFrameInfo(out_frame.width(), out_frame.height(),
+                                      out_frame.is_texture());
     RTC_LOG(LS_INFO) << "Video frame parameters changed: dimensions="
                      << last_frame_info_->width << "x"
                      << last_frame_info_->height
                      << ", texture=" << last_frame_info_->is_texture << ".";
     // Force full frame update, since resolution has changed.
     accumulated_update_rect_ =
-        VideoFrame::UpdateRect{0, 0, video_frame.width(), video_frame.height()};
+        VideoFrame::UpdateRect{0, 0, out_frame.width(), out_frame.height()};
   }
 
   // We have to create then encoder before the frame drop logic,
@@ -1161,7 +1331,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     accumulated_update_rect_.Union(pending_frame_->update_rect());
   }
 
-  if (DropDueToSize(video_frame.size())) {
+  if (DropDueToSize(out_frame.size())) {
     RTC_LOG(LS_INFO) << "Dropping frame. Too large for target bitrate.";
     int count = GetConstAdaptCounter().ResolutionCount(kQuality);
     AdaptDown(kQuality);
@@ -1170,14 +1340,14 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     }
     ++initial_framedrop_;
     // Storing references to a native buffer risks blocking frame capture.
-    if (video_frame.video_frame_buffer()->type() !=
+    if (out_frame.video_frame_buffer()->type() !=
         VideoFrameBuffer::Type::kNative) {
-      pending_frame_ = video_frame;
+      pending_frame_ = out_frame;
       pending_frame_post_time_us_ = time_when_posted_us;
     } else {
       // Ensure that any previously stored frame is dropped.
       pending_frame_.reset();
-      accumulated_update_rect_.Union(video_frame.update_rect());
+      accumulated_update_rect_.Union(out_frame.update_rect());
     }
     return;
   }
@@ -1185,17 +1355,17 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
 
   if (EncoderPaused()) {
     // Storing references to a native buffer risks blocking frame capture.
-    if (video_frame.video_frame_buffer()->type() !=
+    if (out_frame.video_frame_buffer()->type() !=
         VideoFrameBuffer::Type::kNative) {
       if (pending_frame_)
         TraceFrameDropStart();
-      pending_frame_ = video_frame;
+      pending_frame_ = out_frame;
       pending_frame_post_time_us_ = time_when_posted_us;
     } else {
       // Ensure that any previously stored frame is dropped.
       pending_frame_.reset();
       TraceFrameDropStart();
-      accumulated_update_rect_.Union(video_frame.update_rect());
+      accumulated_update_rect_.Union(out_frame.update_rect());
     }
     return;
   }
@@ -1219,11 +1389,11 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
         << ", input frame rate " << framerate_fps;
     OnDroppedFrame(
         EncodedImageCallback::DropReason::kDroppedByMediaOptimizations);
-    accumulated_update_rect_.Union(video_frame.update_rect());
+    accumulated_update_rect_.Union(out_frame.update_rect());
     return;
   }
 
-  EncodeVideoFrame(video_frame, time_when_posted_us);
+  EncodeVideoFrame(out_frame, time_when_posted_us);
 }
 
 void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
@@ -1338,8 +1508,7 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
     VideoFrame::UpdateRect update_rect =
         out_frame.update_rect().IsEmpty()
             ? out_frame.update_rect()
-            : VideoFrame::UpdateRect{0, 0, out_frame.width(),
-                                     out_frame.height()};
+            : VideoFrame::UpdateRect{0, 0, out_frame.width(), out_frame.height()};
 
     out_frame = VideoFrame::Builder()
                     .set_video_frame_buffer(converted_buffer)
@@ -1351,13 +1520,32 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
                     .build();
   }
 
+  // ContentRotation ypr; // Yichen Debug
+  // ypr.yaw = 90; ypr.pitch = 15; ypr.roll = 0; // Yichen Debug
+  // out_frame.set_adaptation(ypr); // Yichen Debug
+
+  /* RTC_LOG(LS_INFO) << "Before Encoder: ts-"
+                   << out_frame.timestamp_us() / CLOCKS_PER_SEC << ", res-"
+                   << out_frame.width() << "x"
+                   << out_frame.height(); // Yichen Eval: Frame Drop Rate */
+
   TRACE_EVENT1("webrtc", "VCMGenericEncoder::Encode", "timestamp",
                out_frame.timestamp());
 
   frame_encoder_timer_.OnEncodeStarted(out_frame.timestamp(),
                                        out_frame.render_time_ms());
 
+  // Yichen
+  clock_t t_start, t_end;
+  t_start = clock(); // Yichen Eval: Frame Encoding Time */
   const int32_t encode_status = encoder_->Encode(out_frame, &next_frame_types_);
+  // Yichen
+  t_end = clock();
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/encode-ms.txt",
+      std::fstream::out | std::fstream::app);
+  file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
+  file.close(); // Yichen Eval: Frame Encoding Time */
 
   if (encode_status < 0) {
     RTC_LOG(LS_ERROR) << "Failed to encode frame. Error code: "

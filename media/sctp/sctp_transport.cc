@@ -22,6 +22,11 @@ enum PreservedErrno {
 
 #include <stdarg.h>
 #include <stdio.h>
+// Yichen
+#include <fcntl.h> // O_RDWR
+#include <semaphore.h>
+#include <sys/mman.h> // shm_open()
+// Yichen */
 
 #include <memory>
 
@@ -961,6 +966,35 @@ void SctpTransport::OnDataFromSctpToTransport(
                       << " on stream " << params.sid;
   // Reports all received messages to upper layers, no matter whether the sid
   // is known.
+  // Yichen
+  if (buffer.data()[11] == '#' && buffer.data()[12] == '#' &&
+      buffer.data()[13] == '#' && buffer.data()[14] == '#') {
+    int prefix = 17;
+    int l = buffer.size() - prefix - 1;
+    char* data = (char*)malloc(l);
+    memcpy(data, (void*)(buffer.data() + prefix), l);
+    sem_t* rr_in = sem_open("rr_in", O_RDWR);
+    if (rr_in != SEM_FAILED) {
+      int shmfd = shm_open("/(null)_in", O_RDWR, 0);
+      if (shmfd > 0) {
+        void* shmaddr = mmap(NULL, l, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0);
+        if (shmaddr != MAP_FAILED) {
+          sem_t* mutex_in = sem_open("mutex_in", O_RDWR);
+          if (mutex_in != SEM_FAILED) {
+            sem_wait(mutex_in);
+            memcpy(shmaddr, (void*)(buffer.data() + prefix), l);
+            sem_post(mutex_in);
+            sem_post(rr_in);
+            sem_close(mutex_in);
+          } else RTC_LOG(LS_INFO) << "sem_open() mutex_in failed";
+          munmap(shmaddr, l);
+        } else RTC_LOG(LS_INFO) << "mmap() shmfd failed";
+        close(shmfd);
+      } else RTC_LOG(LS_INFO) << "shm_open() \"/(null)_in\" failed";
+      sem_close(rr_in);
+    } else RTC_LOG(LS_INFO) << "sem_open() rr_in failed";
+    free(data);
+  } // Yichen */
   SignalDataReceived(params, buffer);
 }
 

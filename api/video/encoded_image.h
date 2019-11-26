@@ -112,6 +112,7 @@ class RTC_EXPORT EncodedImage {
   int64_t capture_time_ms_ = 0;
   VideoFrameType _frameType = VideoFrameType::kVideoFrameDelta;
   VideoRotation rotation_ = kVideoRotation_0;
+  ContentRotation adaptation_; // Yichen
   VideoContentType content_type_ = VideoContentType::UNSPECIFIED;
   bool _completeFrame = false;
   int qp_ = -1;  // Quantizer value.

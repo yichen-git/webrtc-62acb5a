@@ -62,6 +62,9 @@ struct RTPHeaderExtension {
   bool hasVideoRotation;
   VideoRotation videoRotation;
 
+  bool hasContentRotation; // Yichen
+  ContentRotation contentRotation; // Yichen
+
   // TODO(ilnik): Refactor this and one above to be absl::optional() and remove
   // a corresponding bool flag.
   bool hasVideoContentType;

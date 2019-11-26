@@ -39,6 +39,7 @@ namespace cricket {
 // Holds data to be passed on to a transport.
 struct SctpInboundPacket;
 
+// Yichen Log:
 // From transport calls, data flows like this:
 // [network thread (although it can in princple be another thread)]
 //  1.  SctpTransport::SendData(data)

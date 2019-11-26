@@ -497,7 +497,7 @@ void VideoReceiveStream::OnFrame(const VideoFrame& video_frame) {
     // TODO(tommi): OnSyncOffsetUpdated grabs a lock.
     stats_proxy_.OnSyncOffsetUpdated(sync_offset_ms, estimated_freq_khz);
   }
-  config_.renderer->OnFrame(video_frame);
+  config_.renderer->OnFrame(video_frame); // Yichen Log: Track is missing from OnFrame() functions, and the renderer may be faked
 
   // TODO(tommi): OnRenderFrame grabs a lock too.
   stats_proxy_.OnRenderedFrame(video_frame);
@@ -610,6 +610,7 @@ void VideoReceiveStream::StartNextDecode() {
       if (stream->decoder_stopped_)
         return;
       if (frame) {
+        // Yichen Log: Here is the place where calling HandleEncodedFrame()
         stream->HandleEncodedFrame(std::move(frame));
       } else {
         stream->HandleFrameBufferTimeout();
@@ -674,6 +675,11 @@ void VideoReceiveStream::HandleEncodedFrame(
   stats_proxy_.OnPreDecode(frame->CodecSpecific()->codecType, qp);
 
   int decode_result = video_receiver_.Decode(frame.get());
+  /* Yichen
+  RTC_LOG(LS_INFO) << "HandleEncodedFrame(): ypr: "
+                   << (int)frame->adaptation().yaw << ","
+                   << (int)frame->adaptation().pitch << ","
+                   << (int)frame->adaptation().roll; // Yichen */
   if (decode_result == WEBRTC_VIDEO_CODEC_OK ||
       decode_result == WEBRTC_VIDEO_CODEC_OK_REQUEST_KEYFRAME) {
     keyframe_required_ = false;

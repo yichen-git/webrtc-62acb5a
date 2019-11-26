@@ -12,6 +12,7 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <fstream> // Yichen Eval
 
 #include "api/video/video_timing.h"
 #include "modules/video_coding/include/video_error_codes.h"
@@ -143,8 +144,46 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
 
   decodedImage.set_timestamp_us(frameInfo->renderTimeMs *
                                 rtc::kNumMicrosecsPerMillisec);
+  /* Yichen
+  RTC_LOG(LS_INFO) << "-------------------- toVideoFrame ypr: "
+                   << (int)frameInfo->adaptation.yaw << ","
+                   << (int)frameInfo->adaptation.pitch << ","
+                   << (int)frameInfo->adaptation.roll;
+  // Yichen */
   decodedImage.set_rotation(frameInfo->rotation);
+  decodedImage.set_adaptation(frameInfo->adaptation); // Yichen
+  /* Yichen
+  RTC_LOG(LS_INFO) << "-------------------- VideoFrame adaptation_: "
+                   << (int)decodedImage.adaptation().yaw + (int)decodedImage.adaptation().extra << ","
+                   << (int)decodedImage.adaptation().pitch << ","
+                   << (int)decodedImage.adaptation().roll
+                   << " --------------------";
+  // Yichen */
+  // Yichen
+  rtc::scoped_refptr<I420BufferInterface> log_buffer(
+      decodedImage.video_frame_buffer()->ToI420());
+
+  if (!log_buffer) {
+    RTC_LOG(LS_ERROR) << "Frame conversion failed, dropping frame.";
+    return;
+  }
+
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/frame/raw/" +
+      std::to_string(decodedImage.timestamp()) + "-" +
+      std::to_string(decodedImage.width()) + "-" +
+      std::to_string(decodedImage.height()) + ".raw", std::fstream::out);
+  int stride = decodedImage.width() * decodedImage.height();
+  file.write((char*)log_buffer.get()->ToI420()->DataY(), stride);
+  file.write((char*)log_buffer.get()->ToI420()->DataU(), stride >> 2);
+  file.write((char*)log_buffer.get()->ToI420()->DataV(), stride >> 2);
+  file.close(); // Yichen Eval: Delivered Frame */
   _receiveCallback->FrameToRender(decodedImage, qp, frameInfo->content_type);
+}
+
+int32_t VCMDecodedFrameCallback::ReceivedDecodedReferenceFrame(
+    const uint64_t pictureId) {
+  return _receiveCallback->ReceivedDecodedReferenceFrame(pictureId);
 }
 
 int32_t VCMDecodedFrameCallback::ReceivedDecodedFrame(
@@ -211,7 +250,13 @@ int32_t VCMGenericDecoder::Decode(const VCMEncodedFrame& frame, int64_t nowMs) {
   _frameInfos[_nextFrameInfoIdx].decodeStartTimeMs = nowMs;
   _frameInfos[_nextFrameInfoIdx].renderTimeMs = frame.RenderTimeMs();
   _frameInfos[_nextFrameInfoIdx].rotation = frame.rotation();
+  _frameInfos[_nextFrameInfoIdx].adaptation = frame.adaptation(); // Yichen
   _frameInfos[_nextFrameInfoIdx].timing = frame.video_timing();
+  /* Yichen
+  RTC_LOG(LS_INFO) << "-------------------- ypr: "
+                   << (int)frame.adaptation().yaw << ","
+                   << (int)frame.adaptation().pitch << ","
+                   << (int)frame.adaptation().roll; // Yichen */
   // Set correctly only for key frames. Thus, use latest key frame
   // content type. If the corresponding key frame was lost, decode will fail
   // and content type will be ignored.
@@ -224,8 +269,18 @@ int32_t VCMGenericDecoder::Decode(const VCMEncodedFrame& frame, int64_t nowMs) {
   _callback->Map(frame.Timestamp(), &_frameInfos[_nextFrameInfoIdx]);
 
   _nextFrameInfoIdx = (_nextFrameInfoIdx + 1) % kDecoderFrameMemoryLength;
+  // Yichen
+  clock_t t_start, t_end;
+  t_start = clock(); // Yichen Eval: Frame Decoding Time */
   int32_t ret = decoder_->Decode(frame.EncodedImage(), frame.MissingFrame(),
                                  frame.RenderTimeMs());
+  // Yichen
+  t_end = clock();
+  std::ofstream file;
+  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/decode-ms.txt",
+      std::fstream::out | std::fstream::app);
+  file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
+  file.close(); // Yichen Eval: Frame Decoding Time */
 
   _callback->OnDecoderImplementationName(decoder_->ImplementationName());
   if (ret < WEBRTC_VIDEO_CODEC_OK) {

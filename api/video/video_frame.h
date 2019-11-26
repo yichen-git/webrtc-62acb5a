@@ -146,6 +146,11 @@ class RTC_EXPORT VideoFrame {
   VideoRotation rotation() const { return rotation_; }
   void set_rotation(VideoRotation rotation) { rotation_ = rotation; }
 
+  // Yichen
+  ContentRotation adaptation() const { return adaptation_; }
+  void set_adaptation(ContentRotation adaptation) { adaptation_ = adaptation; }
+  // Yichen */
+
   // Get color space when available.
   const absl::optional<ColorSpace>& color_space() const { return color_space_; }
   void set_color_space(const absl::optional<ColorSpace>& color_space) {
@@ -195,6 +200,7 @@ class RTC_EXPORT VideoFrame {
   int64_t ntp_time_ms_;
   int64_t timestamp_us_;
   VideoRotation rotation_;
+  ContentRotation adaptation_; // Yichen
   absl::optional<ColorSpace> color_space_;
   // Updated since the last frame area. Unless set explicitly, will always be
   // a full frame rectangle.

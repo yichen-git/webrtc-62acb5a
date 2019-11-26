@@ -102,6 +102,8 @@ const char RtpExtension::kAbsSendTimeUri[] =
 
 const char RtpExtension::kVideoRotationUri[] = "urn:3gpp:video-orientation";
 
+const char RtpExtension::kContentRotationUri[] = "bingsyslab:content-orientation"; // Yichen
+
 const char RtpExtension::kTransportSequenceNumberUri[] =
     "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01";
 const char RtpExtension::kTransportSequenceNumberV2Uri[] =
@@ -163,6 +165,7 @@ bool RtpExtension::IsSupportedForVideo(const std::string& uri) {
   return uri == webrtc::RtpExtension::kTimestampOffsetUri ||
          uri == webrtc::RtpExtension::kAbsSendTimeUri ||
          uri == webrtc::RtpExtension::kVideoRotationUri ||
+         uri == webrtc::RtpExtension::kContentRotationUri || // Yichen
          uri == webrtc::RtpExtension::kTransportSequenceNumberUri ||
          uri == webrtc::RtpExtension::kTransportSequenceNumberV2Uri ||
          uri == webrtc::RtpExtension::kPlayoutDelayUri ||
@@ -189,6 +192,7 @@ bool RtpExtension::IsEncryptionSupported(const std::string& uri) {
          uri == webrtc::RtpExtension::kAbsSendTimeUri ||
 #endif
          uri == webrtc::RtpExtension::kVideoRotationUri ||
+         uri == webrtc::RtpExtension::kContentRotationUri || // Yichen
          uri == webrtc::RtpExtension::kTransportSequenceNumberUri ||
          uri == webrtc::RtpExtension::kTransportSequenceNumberV2Uri ||
          uri == webrtc::RtpExtension::kPlayoutDelayUri ||

@@ -477,7 +477,18 @@ bool RtpPacket::ParseBuffer(const uint8_t* buffer, size_t size) {
           id = buffer[extension_offset + extensions_size_];
           length = buffer[extension_offset + extensions_size_ + 1];
         }
-
+        /* Yichen
+        if (id == 10) {
+          int yaw = buffer[extension_offset + extensions_size_ + 2];
+          int pitch = buffer[extension_offset + extensions_size_ + 3];
+          int roll = buffer[extension_offset + extensions_size_ + 4]; // Roll should be missing, but not, should learn about WebRTC better
+          RTC_LOG(LS_INFO) << "-------------------- id: " << id
+                           << ", length: " << (int)length
+                           << ", yaw: " << (int)yaw
+                           << ", pitch: " << (int)pitch
+                           << ", roll: " << (int)roll
+                           << " --------------------";
+        } // Yichen */
         if (extensions_size_ + extension_header_length + length >
             extensions_capacity) {
           RTC_LOG(LS_WARNING) << "Oversized rtp header extension.";

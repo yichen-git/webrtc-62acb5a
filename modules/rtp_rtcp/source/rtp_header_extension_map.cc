@@ -34,6 +34,7 @@ constexpr ExtensionInfo kExtensions[] = {
     CreateExtensionInfo<AudioLevel>(),
     CreateExtensionInfo<AbsoluteSendTime>(),
     CreateExtensionInfo<VideoOrientation>(),
+    CreateExtensionInfo<ContentOrientation>(), // Yichen
     CreateExtensionInfo<TransportSequenceNumber>(),
     CreateExtensionInfo<TransportSequenceNumberV2>(),
     CreateExtensionInfo<PlayoutDelayLimits>(),

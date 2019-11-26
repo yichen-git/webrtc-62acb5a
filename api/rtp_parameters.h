@@ -272,6 +272,8 @@ struct RtpExtension {
   // http://www.etsi.org/deliver/etsi_ts/126100_126199/126114/12.07.00_60/ts_126114v120700p.pdf
   static const char kVideoRotationUri[];
 
+  static const char kContentRotationUri[]; // Yichen
+
   // Header extension for video content type. E.g. default or screenshare.
   static const char kVideoContentTypeUri[];
 

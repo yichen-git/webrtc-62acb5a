@@ -2561,6 +2561,15 @@ void WebRtcVideoChannel::WebRtcVideoReceiveStream::RecreateWebRtcVideoStream() {
   webrtc::VideoReceiveStream::Config config = config_.Copy();
   config.rtp.protected_by_flexfec = (flexfec_stream_ != nullptr);
   config.stream_id = stream_params_.id;
+  // Yichen
+  std::string uri = "bingsyslab:content-orientation";
+  const std::string& extension = uri;
+  int id = 10; // Yichen Log: register ID at receiver
+  config.rtp.extensions.push_back(webrtc::RtpExtension(extension, id));
+  /* Yichen
+  for (const auto item : config.rtp.extensions)
+    RTC_LOG(LS_INFO) << item.uri << "--------------------";
+  // Yichen */
   stream_ = call_->CreateVideoReceiveStream(std::move(config));
   if (base_minimum_playout_delay_ms) {
     stream_->SetBaseMinimumPlayoutDelayMs(
