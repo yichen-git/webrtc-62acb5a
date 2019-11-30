@@ -422,7 +422,7 @@ EncodedImageCallback::Result RtpVideoSender::OnEncodedImage(
 
   // Yichen
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/translate-rtp-ts.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/diving/translate-rtp-ts.txt",
       std::fstream::out | std::fstream::app);
   file << rtp_timestamp << "," << encoded_image.Timestamp() << std::endl;
   file.close(); // Yichen Eval: Frame Timestamp Translation */
@@ -462,7 +462,7 @@ EncodedImageCallback::Result RtpVideoSender::OnEncodedImage(
 
   /* Yichen
   // std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/encode-qp.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/diving/encode-qp.txt",
       std::fstream::out | std::fstream::app);
   file << encoded_image.qp_ << std::endl;
   file.close(); // Yichen Eval: Frame Encoding Params */

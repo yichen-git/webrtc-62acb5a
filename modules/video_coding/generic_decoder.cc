@@ -169,7 +169,7 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
   }
 
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/frame/raw/" +
+  file.open("/home/yichen/Downloads/webrtc-data/diving/frame/raw/" +
       std::to_string(decodedImage.timestamp()) + "-" +
       std::to_string(decodedImage.width()) + "-" +
       std::to_string(decodedImage.height()) + ".raw", std::fstream::out);
@@ -272,7 +272,7 @@ int32_t VCMGenericDecoder::Decode(const VCMEncodedFrame& frame, int64_t nowMs) {
   /* Yichen
   t_end = clock();
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/user-0/decode-ms.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/diving/decode-ms.txt",
       std::fstream::out | std::fstream::app);
   file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
   file.close(); // Yichen Eval: Frame Decoding Time */
