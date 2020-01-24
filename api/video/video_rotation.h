@@ -29,6 +29,12 @@ struct ContentRotation {
   int8_t extra = 0;
 }; // Yichen */
 
+// Yichen
+struct AdaptSize {
+  int width = 0;
+  int height = 0;
+}; // Yichen */
+
 }  // namespace webrtc
 
 #endif  // API_VIDEO_VIDEO_ROTATION_H_
