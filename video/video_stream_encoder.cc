@@ -967,10 +967,12 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
         /* encoder_stats_observer_->OnIncomingFrame(incoming_frame.width(),
                                                  incoming_frame.height()); // Yichen */
         // Yichen
-        /* RTC_LOG(LS_INFO) << incoming_frame.adapt_size().width << ":"
-                         << incoming_frame.adapt_size().height; // Yichen */
-        int target_width = incoming_frame.adapt_size().width,
-            target_height = incoming_frame.adapt_size().height;
+        int target_width = incoming_frame.adapt_size().width == 0
+                ? (incoming_frame.width() * 3) >> 2
+                : incoming_frame.adapt_size().width,
+            target_height = incoming_frame.adapt_size().height == 0
+                ? (incoming_frame.height() * 3) >> 2
+                : incoming_frame.adapt_size().height;
         ft360::Consult(incoming_frame.width(),
                        incoming_frame.height(),
                        target_width,
@@ -1202,11 +1204,11 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
   }
 
   int target_width = video_frame.adapt_size().width == 0
-                   ? (video_frame.width() * 3) >> 2
-                   : video_frame.adapt_size().width,
+          ? (video_frame.width() * 3) >> 2
+          : video_frame.adapt_size().width,
       target_height = video_frame.adapt_size().height == 0
-                   ? (video_frame.height() * 3) >> 2
-                   : video_frame.adapt_size().height;
+          ? (video_frame.height() * 3) >> 2
+          : video_frame.adapt_size().height;
 
   VideoFrame::UpdateRect update_rect =
       VideoFrame::UpdateRect{0, 0, target_width, target_height};
