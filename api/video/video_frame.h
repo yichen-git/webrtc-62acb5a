@@ -154,8 +154,11 @@ class RTC_EXPORT VideoFrame {
   // Yichen
   AdaptSize adapt_size() const { return adapt_size_; }
   void set_adapt_size(int width, int height) {
-    adapt_size_.width = width;
-    adapt_size_.height = height;
+    if (width > 0 && height > 0) {
+      adapt_size_.adapted = true;
+      adapt_size_.width = width;
+      adapt_size_.height = height;
+    }
   } // Yichen */
 
   // Get color space when available.

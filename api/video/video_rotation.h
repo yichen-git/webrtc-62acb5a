@@ -31,6 +31,7 @@ struct ContentRotation {
 
 // Yichen
 struct AdaptSize {
+  bool adapted = false;
   int width = 0;
   int height = 0;
 }; // Yichen */
