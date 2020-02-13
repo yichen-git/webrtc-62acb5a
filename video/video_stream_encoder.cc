@@ -1498,7 +1498,7 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
   // ypr.yaw = 90; ypr.pitch = 15; ypr.roll = 0; // Yichen Debug
   // out_frame.set_adaptation(ypr); // Yichen Debug
 
-  RTC_LOG(LS_INFO) << "Before Encoder: ts-"
+  /* RTC_LOG(LS_INFO) << "Before Encoder: ts-"
                    << out_frame.timestamp_us() / CLOCKS_PER_SEC << ", res-"
                    << out_frame.width() << "x"
                    << out_frame.height(); // Yichen Eval: Frame Drop Rate */
