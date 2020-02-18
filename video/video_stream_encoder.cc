@@ -932,7 +932,7 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
       kMsToRtpTimestamp * static_cast<uint32_t>(incoming_frame.ntp_time_ms()));
   // Yichen
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/translate-ts-us.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/data-/translate-ts-us.txt",
       std::fstream::out | std::fstream::app);
   file << incoming_frame.timestamp() << ","
        << incoming_frame.timestamp_us() << std::endl;
@@ -1205,6 +1205,18 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
       return;
     }
 
+    // Yichen
+    std::ofstream file;
+    file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
+        std::to_string(video_frame.timestamp_us()) + "-" +
+        std::to_string(video_frame.width()) + "-" +
+        std::to_string(video_frame.height()) + ".raw", std::fstream::out);
+    int stride = video_frame.width() * video_frame.height();
+    file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
+    file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
+    file.write((char*)transform_buffer.get()->ToI420()->DataV(), stride >> 2);
+    file.close(); // Yichen Eval: Ground Frame */
+
     VideoFrame::UpdateRect update_rect =
         VideoFrame::UpdateRect{0, 0, video_frame.adapt_size().width,
                                      video_frame.adapt_size().height};
@@ -1233,7 +1245,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     /* Yichen
     t_end = clock();
     std::ofstream file;
-    file.open("/home/yichen/Downloads/webrtc-data/diving/transform-ms.txt",
+    file.open("/home/yichen/Downloads/webrtc-data/data-/transform-ms.txt",
         std::fstream::out | std::fstream::app);
     file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
     file.close(); // Yichen Eval: Frame Transform Time */
@@ -1516,7 +1528,7 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
   /* Yichen
   t_end = clock();
   std::ofstream file;
-  file.open("/home/yichen/Downloads/webrtc-data/diving/encode-ms.txt",
+  file.open("/home/yichen/Downloads/webrtc-data/data-/encode-ms.txt",
       std::fstream::out | std::fstream::app);
   file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
   file.close(); // Yichen Eval: Frame Encoding Time */
