@@ -1233,11 +1233,12 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                                    video_frame.width(),
                                    video_frame.height(),
                                    video_frame.adapt_size().width,
-                                   video_frame.adapt_size().height,
-                                   ypr.yaw + ypr.extra,
-                                   ypr.pitch,
-                                   ypr.roll);
-    if (transformer.TransformWrapper(OFFSET_EQUIRECT) == 0) {
+                                   video_frame.adapt_size().height);
+    if (transformer.TransformWrapper(ypr.yaw + ypr.extra,
+                                     ypr.pitch,
+                                     ypr.roll,
+                                     0, 0, 0.3,
+                                     OFFSET_EQUIRECT) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
