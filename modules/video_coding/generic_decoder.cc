@@ -172,7 +172,7 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
   file.open("/home/yichen/Downloads/webrtc-data/data-/frame/data/" +
       std::to_string(decodedImage.timestamp()) + "-" +
       std::to_string(decodedImage.width()) + "-" +
-      std::to_string(decodedImage.height()) + ".raw", std::fstream::out);
+      std::to_string(decodedImage.height()) + "0:0:0.raw", std::fstream::out);
   int stride = decodedImage.width() * decodedImage.height();
   file.write((char*)log_buffer.get()->ToI420()->DataY(), stride);
   file.write((char*)log_buffer.get()->ToI420()->DataU(), stride >> 2);

@@ -1179,6 +1179,8 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                 ptr = strtok(NULL, delim);
                 ypr.roll = atoi(ptr);
                 // TEXT TO VALUE
+                /* RTC_LOG(LS_INFO) << "ypr: " << (int)(ypr.yaw + ypr.extra) << ":"
+                    << (int)ypr.pitch << ":" << (int)ypr.roll; // Yichen */
               } else sem_wait(rr_out);
               sem_close(mutex_out);
             } else RTC_LOG(LS_INFO) << "sem_open() mutex_out failed";
@@ -1210,7 +1212,10 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
         std::to_string(video_frame.timestamp_us()) + "-" +
         std::to_string(video_frame.width()) + "-" +
-        std::to_string(video_frame.height()) + ".raw", std::fstream::out);
+        std::to_string(video_frame.height()) + "-" +
+        std::to_string((int)(ypr.yaw + ypr.extra)) + ":" +
+        std::to_string((int)ypr.pitch) + ":" +
+        std::to_string((int)ypr.roll) + ".raw", std::fstream::out);
     int stride = video_frame.width() * video_frame.height();
     file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
     file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
@@ -1237,7 +1242,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     if (transformer.TransformWrapper(ypr.yaw + ypr.extra,
                                      ypr.pitch,
                                      ypr.roll,
-                                     0, 0, 0.3,
+                                     0, 0, 0.25,
                                      OFFSET_EQUIRECT) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
