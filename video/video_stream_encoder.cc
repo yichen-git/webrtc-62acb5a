@@ -1210,10 +1210,10 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     // Yichen
     std::ofstream file;
     file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
-        std::to_string(video_frame.timestamp_us()) + "-" +
-        std::to_string(video_frame.width()) + "-" +
-        std::to_string(video_frame.height()) + "-" +
-        std::to_string((int)(ypr.yaw + ypr.extra)) + ":" +
+        std::to_string(video_frame.timestamp_us()) + ":" +
+        std::to_string(video_frame.width()) + ":" +
+        std::to_string(video_frame.height()) + ":" +
+        std::to_string((int)ypr.yaw + (int)ypr.extra) + ":" +
         std::to_string((int)ypr.pitch) + ":" +
         std::to_string((int)ypr.roll) + ".raw", std::fstream::out);
     int stride = video_frame.width() * video_frame.height();
@@ -1239,15 +1239,20 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                                    video_frame.height(),
                                    video_frame.adapt_size().width,
                                    video_frame.adapt_size().height);
-    if (transformer.TransformWrapper(ypr.yaw + ypr.extra,
-                                     ypr.pitch,
-                                     ypr.roll,
+    /* if (transformer.Scale() == 0) {
+      transformer.Get(ft360_buffer.get()->MutableDataY(),
+                      ft360_buffer.get()->MutableDataU(),
+                      ft360_buffer.get()->MutableDataV());
+    } else RTC_LOG(LS_ERROR) << "Transformer::Scale() failed"; // Yichen */
+    if (transformer.TransformWrapper((float)((int)ypr.yaw + (int)ypr.extra),
+                                     (float)ypr.pitch,
+                                     (float)ypr.roll,
                                      0, 0, 0.25,
                                      OFFSET_EQUIRECT) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
-    } else RTC_LOG(LS_ERROR) << "Transformer::TransformWrapper() failed";
+    } else RTC_LOG(LS_ERROR) << "Transformer::TransformWrapper() failed"; // Yichen */
     /* Yichen
     t_end = clock();
     std::ofstream file;
