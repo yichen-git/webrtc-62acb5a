@@ -974,7 +974,6 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
           target_height = incoming_frame.adapt_size().height;
           if (ft360::Consult(target_width,
                              target_height,
-                             0, 0, 0,
                              OFFSET_EQUIRECT) != 0) {
             RTC_LOG(LS_ERROR) << "ft360::Consult() Failed";
           }
@@ -1222,12 +1221,19 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     file.write((char*)transform_buffer.get()->ToI420()->DataV(), stride >> 2);
     file.close(); // Yichen Eval: Ground Frame */
 
+    int target_width = video_frame.adapt_size().width,
+        target_height = video_frame.adapt_size().height;
+    if (ft360::Consult(target_width,
+                       target_height,
+                       OFFSET_EQUIRECT) != 0) {
+      RTC_LOG(LS_ERROR) << "ft360::Consult() Failed";
+    }
+
     VideoFrame::UpdateRect update_rect =
-        VideoFrame::UpdateRect{0, 0, video_frame.adapt_size().width,
-                                     video_frame.adapt_size().height};
+        VideoFrame::UpdateRect{0, 0, target_width, target_height};
 
     rtc::scoped_refptr<I420Buffer> ft360_buffer = I420Buffer::Create(
-        video_frame.adapt_size().width, video_frame.adapt_size().height);
+        target_width, target_height);
 
     /* Yichen
     clock_t t_start, t_end;
@@ -1237,8 +1243,8 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                                    transform_buffer.get()->ToI420()->DataV(),
                                    video_frame.width(),
                                    video_frame.height(),
-                                   video_frame.adapt_size().width,
-                                   video_frame.adapt_size().height);
+                                   target_width,
+                                   target_height);
     /* if (transformer.Scale() == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
