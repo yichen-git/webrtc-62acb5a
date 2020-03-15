@@ -460,7 +460,7 @@ EncodedImageCallback::Result RtpVideoSender::OnEncodedImage(
   if (!send_result)
     return Result(Result::ERROR_SEND_FAILED);
 
-  /* Yichen
+  // Yichen
   // std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/data-/encoding-qp.txt",
       std::fstream::out | std::fstream::app);

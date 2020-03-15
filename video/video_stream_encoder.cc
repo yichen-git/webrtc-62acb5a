@@ -1250,11 +1250,13 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
     } else RTC_LOG(LS_ERROR) << "Transformer::Scale() failed"; // Yichen */
+    float max_offset = 1.0 - fmax((float)target_width / video_frame.width(),
+                                  (float)target_height / video_frame.height());
     if (transformer.TransformWrapper((float)((int)ypr.yaw + (int)ypr.extra),
                                      (float)ypr.pitch,
                                      (float)ypr.roll,
-                                     0, 0, 0.25, 0,
-                                     OFFSET_EQUIRECT) == 0) {
+                                     0, 0, max_offset,
+                                     1.01, OFFSET_EQUIRECT) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
@@ -1538,16 +1540,16 @@ void VideoStreamEncoder::EncodeVideoFrame(const VideoFrame& video_frame,
   frame_encoder_timer_.OnEncodeStarted(out_frame.timestamp(),
                                        out_frame.render_time_ms());
 
-  /* Yichen
+  // Yichen
   clock_t t_start, t_end;
   t_start = clock(); // Yichen Eval: Frame Encoding Time */
   const int32_t encode_status = encoder_->Encode(out_frame, &next_frame_types_);
-  /* Yichen
+  // Yichen
   t_end = clock();
   std::ofstream file;
   file.open("/home/yichen/Downloads/webrtc-data/data-/encode-ms.txt",
       std::fstream::out | std::fstream::app);
-  file << (float)(t_end - t_start) / (CLOCKS_PER_SEC / 1000) << std::endl;
+  file << (float)(1000 * (t_end - t_start)) / CLOCKS_PER_SEC << std::endl;
   file.close(); // Yichen Eval: Frame Encoding Time */
 
   if (encode_status < 0) {
