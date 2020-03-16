@@ -169,7 +169,7 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
   }
 
   std::ofstream file;
-  /* file.open("/home/yichen/Downloads/webrtc-data/data-/frame/data/" +
+  file.open("/home/yichen/Downloads/webrtc-data/data-/frame/data/" +
       std::to_string(decodedImage.timestamp()) + ":" +
       std::to_string(decodedImage.width()) + ":" +
       std::to_string(decodedImage.height()) + ":" +
@@ -178,7 +178,7 @@ void VCMDecodedFrameCallback::Decoded(VideoFrame& decodedImage,
       std::to_string((int)decodedImage.adaptation().pitch) + ":" +
       std::to_string((int)decodedImage.adaptation().roll) +
       ".raw", std::fstream::out); // Yichen */
-  file.open("/home/yichen/Downloads/webrtc-data/data-/frame/data/" +
+  /* file.open("/home/yichen/Downloads/webrtc-data/data-/frame/data/" +
       std::to_string(decodedImage.timestamp()) + ":" +
       std::to_string(decodedImage.width()) + ":" +
       std::to_string(decodedImage.height()) +
