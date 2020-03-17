@@ -974,7 +974,7 @@ void VideoStreamEncoder::OnFrame(const VideoFrame& video_frame) {
           target_height = incoming_frame.adapt_size().height;
           if (ft360::Consult(target_width,
                              target_height,
-                             OFFSET_EQUIRECT) != 0) {
+                             OFFSET_EQUIRECT_21) != 0) {
             RTC_LOG(LS_ERROR) << "ft360::Consult() Failed";
           }
         }
@@ -1225,7 +1225,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
         target_height = video_frame.adapt_size().height;
     if (ft360::Consult(target_width,
                        target_height,
-                       OFFSET_EQUIRECT) != 0) {
+                       OFFSET_EQUIRECT_21) != 0) {
       RTC_LOG(LS_ERROR) << "ft360::Consult() Failed";
     }
 
@@ -1252,11 +1252,11 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     } else RTC_LOG(LS_ERROR) << "Transformer::Scale() failed"; // Yichen */
     float max_offset = 1.0 - fmax((float)target_width / video_frame.width(),
                                   (float)target_height / video_frame.height());
-    if (transformer.TransformWrapper((float)((int)ypr.yaw + (int)ypr.extra),
-                                     (float)ypr.pitch,
-                                     (float)ypr.roll,
-                                     0, 0, max_offset,
-                                     1.01, OFFSET_EQUIRECT) == 0) {
+    if (transformer.Transform((float)((int)ypr.yaw + (int)ypr.extra),
+                              (float)ypr.pitch,
+                              (float)ypr.roll,
+                              0, 0, max_offset,
+                              1.01, OFFSET_EQUIRECT_21) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
