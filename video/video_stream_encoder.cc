@@ -1211,10 +1211,8 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
         std::to_string(video_frame.timestamp_us()) + ":" +
         std::to_string(video_frame.width()) + ":" +
-        std::to_string(video_frame.height()) + ":" +
-        std::to_string((int)ypr.yaw + (int)ypr.extra) + ":" +
-        std::to_string((int)ypr.pitch) + ":" +
-        std::to_string((int)ypr.roll) + ".raw", std::fstream::out);
+        std::to_string(video_frame.height()) +
+        ":0:0:0.raw", std::fstream::out);
     int stride = video_frame.width() * video_frame.height();
     file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
     file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
