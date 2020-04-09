@@ -1207,17 +1207,19 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     }
 
     // Yichen
-    std::ofstream file;
-    file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
-        std::to_string(video_frame.timestamp_us()) + ":" +
-        std::to_string(video_frame.width()) + ":" +
-        std::to_string(video_frame.height()) +
-        ":0:0:0.raw", std::fstream::out);
-    int stride = video_frame.width() * video_frame.height();
-    file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
-    file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
-    file.write((char*)transform_buffer.get()->ToI420()->DataV(), stride >> 2);
-    file.close(); // Yichen Eval: Ground Frame */
+    if (video_frame.timestamp_us() % 4 == 0) {
+      std::ofstream file;
+      file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
+          std::to_string(video_frame.timestamp_us()) + ":" +
+          std::to_string(video_frame.width()) + ":" +
+          std::to_string(video_frame.height()) +
+          ":0:0:0.raw", std::fstream::out);
+      int stride = video_frame.width() * video_frame.height();
+      file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
+      file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
+      file.write((char*)transform_buffer.get()->ToI420()->DataV(), stride >> 2);
+      file.close();
+    } // Yichen Eval: Ground Frame */
 
     int target_width = video_frame.adapt_size().width,
         target_height = video_frame.adapt_size().height;
