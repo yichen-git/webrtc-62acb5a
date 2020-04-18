@@ -967,8 +967,8 @@ void SctpTransport::OnDataFromSctpToTransport(
   // Reports all received messages to upper layers, no matter whether the sid
   // is known.
   // Yichen
-  if (buffer.data()[11] == '#' && buffer.data()[12] == '#' &&
-      buffer.data()[13] == '#' && buffer.data()[14] == '#') {
+  if (buffer.data()[11] == 'A' && buffer.data()[12] == 'W' &&
+      buffer.data()[13] == 'C' && buffer.data()[14] == 'C') {
     int prefix = 17;
     int l = buffer.size() - prefix - 1;
     char* data = (char*)malloc(l);
