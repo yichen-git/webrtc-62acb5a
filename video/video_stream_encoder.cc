@@ -1137,7 +1137,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                    << video_frame.width() << "x"
                    << video_frame.height(); // Yichen Eval: Frame Drop Rate */
   ContentRotation ypr; // Yichen
-  // Yichen
+  /* Yichen
   int flag;
   sem_t* rr_out = sem_open("rr_out", O_RDWR);
   if (rr_out != SEM_FAILED) {
@@ -1178,8 +1178,8 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                 ptr = strtok(NULL, delim);
                 ypr.roll = atoi(ptr);
                 // TEXT TO VALUE
-                /* RTC_LOG(LS_INFO) << "ypr: " << (int)(ypr.yaw + ypr.extra) << ":"
-                    << (int)ypr.pitch << ":" << (int)ypr.roll; // Yichen */
+                RTC_LOG(LS_INFO) << "ypr: " << (int)(ypr.yaw + ypr.extra) << ":"
+                    << (int)ypr.pitch << ":" << (int)ypr.roll; // Yichen
               } else sem_wait(rr_out);
               sem_close(mutex_out);
             } else RTC_LOG(LS_INFO) << "sem_open() mutex_out failed";
@@ -1207,6 +1207,31 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
     }
 
     // Yichen
+    sem_t* rr_in = sem_open("rr_in", O_RDWR);
+    if (rr_in != SEM_FAILED) {
+      int shmfd = shm_open("/(null)_in", O_RDWR, 0);
+      if (shmfd > 0) {
+        int l = video_frame.width() * video_frame.height();
+        l += l >> 1;
+        void* shmaddr = mmap(NULL, l, PROT_READ | PROT_WRITE, MAP_SHARED, shmfd, 0);
+        if (shmaddr != MAP_FAILED) {
+          sem_t* mutex_in = sem_open("mutex_in", O_RDWR);
+          if (mutex_in != SEM_FAILED) {
+            sem_wait(mutex_in);
+            memcpy(shmaddr, transform_buffer.get()->ToI420()->DataY(), l);
+            sem_post(mutex_in);
+            sem_post(rr_in);
+            sem_close(mutex_in);
+          } else RTC_LOG(LS_INFO) << "sem_open() mutex_in failed";
+          munmap(shmaddr, l);
+        } else RTC_LOG(LS_INFO) << "mmap() shmfd failed";
+        close(shmfd);
+      } else RTC_LOG(LS_INFO) << "shm_open() \"/(null)_in\" failed";
+      sem_close(rr_in);
+    } else RTC_LOG(LS_INFO) << "sem_open() rr_in failed";
+    // Yichen: Pass to Torch */
+
+    // Yichen
     if (video_frame.timestamp_us() % 4 == 0) {
       std::ofstream file;
       file.open("/home/yichen/Downloads/webrtc-data/data-/frame/ground/" +
@@ -1220,6 +1245,9 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
       file.write((char*)transform_buffer.get()->ToI420()->DataV(), stride >> 2);
       file.close();
     } // Yichen Eval: Ground Frame */
+
+    // Yichen
+    // Yichen: Receive from Torch */
 
     int target_width = video_frame.adapt_size().width,
         target_height = video_frame.adapt_size().height;

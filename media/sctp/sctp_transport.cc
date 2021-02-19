@@ -966,7 +966,7 @@ void SctpTransport::OnDataFromSctpToTransport(
                       << " on stream " << params.sid;
   // Reports all received messages to upper layers, no matter whether the sid
   // is known.
-  // Yichen
+  /* Yichen
   if (buffer.data()[11] == 'A' && buffer.data()[12] == 'W' &&
       buffer.data()[13] == 'C' && buffer.data()[14] == 'C') {
     int prefix = 17;

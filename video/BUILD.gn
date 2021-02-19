@@ -166,7 +166,7 @@ rtc_source_set("video_stream_encoder_impl") {
   visibility = [ "*" ]
   cflags = [
     "-I/usr/local/include", # Yichen
-    "-I/usr/local/cuda-9.0/include", # Yichen
+    "-I/usr/local/cuda-10.2/include", # Yichen
   ]
   # visibility = [ "../api/video:video_stream_encoder_create" ]
   sources = [
