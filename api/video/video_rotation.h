@@ -23,10 +23,10 @@ enum VideoRotation {
 
 // Yichen
 struct ContentRotation {
-  int8_t yaw = 0;
-  int8_t pitch = 0;
-  int8_t roll = 0;
-  int8_t extra = 0;
+  uint8_t yaw = 0;
+  uint8_t pitch = 0;
+  uint8_t roll = 0;
+  uint8_t extra = 0;
 }; // Yichen */
 
 // Yichen

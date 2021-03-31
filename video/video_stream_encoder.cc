@@ -1190,7 +1190,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
           std::to_string(video_frame.timestamp_us()) + ":" +
           std::to_string(video_frame.width()) + ":" +
           std::to_string(video_frame.height()) +
-          ":0:0:0.raw", std::fstream::out);
+          ":0:0:0:0.raw", std::fstream::out);
       int stride = video_frame.width() * video_frame.height();
       file.write((char*)transform_buffer.get()->ToI420()->DataY(), stride);
       file.write((char*)transform_buffer.get()->ToI420()->DataU(), stride >> 2);
@@ -1205,7 +1205,7 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
       if (sem_getvalue(proc_out, &val) == 0) {
         // RTC_LOG(LS_INFO) << "proc_out: " << val; // Yichen Debug
         if (val > 0) {
-          size_t l = 41; // fixed msg length
+          size_t l = 45; // fixed msg length
           char* data = (char*)malloc(l);
           int shmfd = shm_open("/(null)_out", O_RDWR, 0);
           if (shmfd > 0) {
@@ -1271,11 +1271,11 @@ void VideoStreamEncoder::MaybeEncodeVideoFrame(const VideoFrame& video_frame,
                       ft360_buffer.get()->MutableDataU(),
                       ft360_buffer.get()->MutableDataV());
     } else RTC_LOG(LS_ERROR) << "Transformer::Scale() failed"; // Yichen */
-    float scaler = 20.0;
-    if (transformer.Transform(scaler * ypr.yaw / video_frame.width(),
-                              scaler * ypr.pitch / video_frame.height(), 0,
-                              scaler * ypr.roll / video_frame.width(),
-                              scaler * ypr.extra / video_frame.height(), 0,
+    float norm = 0.00390625; // 1 / 256
+    if (transformer.Transform(norm * ypr.yaw,
+                              norm * ypr.pitch, 0,
+                              norm * ypr.roll,
+                              norm * ypr.extra, 0,
                               1.0, ADVANCED_PLANE) == 0) {
       transformer.Get(ft360_buffer.get()->MutableDataY(),
                       ft360_buffer.get()->MutableDataU(),
